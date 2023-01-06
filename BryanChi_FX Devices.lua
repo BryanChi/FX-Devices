@@ -1,49 +1,5 @@
--- @description FX Devices
--- @author Bryan Chi
--- @version 1.0beta2
--- @changelog
---   -Remove calling deleted functions in ReSpectrum
---   -Fix file path for iconfont
---   -Fix Respectrum typo, change from Respectrum to ReSpectrum
--- @provides
---   [effect] BryanChi_FX Devices/FXD Macros.jsfx
---   [effect] BryanChi_FX Devices/FXD ReSpectrum.jsfx
---   [effect] BryanChi_FX Devices/FXD Gain Reduction Scope.jsfx
---   [effect] BryanChi_FX Devices/FXD Split to 32 Channels.jsfx
---   [effect] BryanChi_FX Devices/FXD Split To 4 Channels.jsfx
---   [effect] BryanChi_FX Devices/cookdsp.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/analysis.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/buffer.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/delay.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/dynamics.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/effects.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/fft-mono-template
---   [effect] BryanChi_FX Devices/cookdsp/fft-stereo-template
---   [effect] BryanChi_FX Devices/cookdsp/fftobjects.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/filters.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/granulator.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/list.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/memalloc.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/midi.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/mmath.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/oscil.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/pobjects.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/pv-mono-template
---   [effect] BryanChi_FX Devices/cookdsp/pv-stereo-template
---   [effect] BryanChi_FX Devices/cookdsp/pvocobjects.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/pvtrans-example
---   [effect] BryanChi_FX Devices/cookdsp/random.jsfx-inc
---   [effect] BryanChi_FX Devices/cookdsp/scaling.jsfx-inc
---   [effect] BryanChi_FX Devices/firhalfband.jsfx-inc
---   [effect] BryanChi_FX Devices/spectrum.jsfx-inc
---   [effect] BryanChi_FX Devices/svf_filter.jsfx-inc
---   BryanChi_FX Devices/IconFont1.ttf
--- @about
---   Please check the forum post for info:
---   https://forum.cockos.com/showthread.php?t=263622
-
 --------------------------==  declare Initial Variables & Functions  ------------------------
-    VersionNumber = 'V1.0beta2 '
+    VersionNumber = 'Dec 23 2022 - bug fix 3 '
     FX_Add_Del_WaitTime=2
     r=reaper
 
@@ -118,6 +74,7 @@
     MovFX={ToPos={};FromPos={};Lbl={};Copy={}}
     ClrPallet={}
     Glob={};
+    Sel_Cross={}
 
     function ConcatPath(...)
         -- Get system dependent path separator
@@ -884,10 +841,11 @@
     r.gmem_attach('gmemForSpectrum')
     
     -- FXs listed here will not have a fx window in the script UI
-    BlackListFXs = {'Macros','JS: Macros .+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
+    BlackListFXs = {'Macros','JS: Macros .+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros.jsfx', 'FXD Macros',
                     'JS: FXD ReSpectrum', 'AU: AULowpass (Apple)', 'AU: AULowpass', 'VST: FabFilter Pro C 2 ' , 'Pro-C 2', 'Pro C 2' , 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx',
+                    'JS: FXD Saike BandSplitter.jsfx'
                     }
-    UtilityFXs =    {'Macros', 'JS: Macros /[.+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros', 'FXD Macros',
+    UtilityFXs =    {'Macros', 'JS: Macros /[.+', 'Frequency Spectrum Analyzer Meter', 'JS: FXD Split to 32 Channels', 'JS: FXD (Mix)RackMixer .+', 'FXD (Mix)RackMixer','JS: FXD Macros.jsfx', 'FXD Macros',
                     'JS: FXD ReSpectrum', 'JS: FXD Split To 4 Channels.jsfx', 'JS: FXD Gain Reduction Scope.jsfx'
                     }
     
@@ -1086,7 +1044,7 @@
             local L, _ = r.TrackFX_GetPinMappings(LT_Track, FX_Idx, 1, 0) -- L chan
             local R, _ = r.TrackFX_GetPinMappings(LT_Track, FX_Idx, 1, 1) -- R chan
             if L ~= Target_L then 
-                if FX_Name:find( 'JS: FXD ReSpectrum') then 
+                if FX_Name:find( 'FXD ReSpectrum') then 
                     for i=0, 16,1 do 
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, i,1,0)
                         r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 1, i,1,0) 
@@ -1142,7 +1100,8 @@
             return str:gsub('[^%p%d]', '')
         end
 
-
+        function TableMaxVal ()
+        end
         
 
 
@@ -1229,7 +1188,7 @@
             local ParamValue_Modding = r.TrackFX_GetParamNormalized( LT_Track, FX_Idx,P_Num) 
             AssignMODtoFX = FX_Idx
             r.gmem_attach('ParamValues')
-            if  r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'Macros', 0, 0) == -1 then 
+            if  r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'Macros', 0, 0) == -1 then 
                 r.gmem_write (1   , PM.DIY_TrkID[TrkID] ) --gives jsfx a guid when it's being created, this will not change becuase it's in the @init.
                 AddMacroJSFX()
                 AssignMODtoFX = AssignMODtoFX+1
@@ -2443,7 +2402,7 @@
 
         --[[ for i=1,  RepeatTimeForWindows,1 do
             local FXGUID = reaper.TrackFX_GetFXGUID( LT_Track, i )
-            msg(i) ]]
+            ]]
             if FX.LyrNum[guid] == LayerNum and FX.InLyr[guid] == FXGUID_RackMixer then 
                 local FX_Idx 
                 --_, FXName  = r.TrackFX_GetFXName( LT_Track, i )
@@ -5873,7 +5832,7 @@ function loop()
                         end
 
                         if IsMacroActive then 
-                            if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then
+                            if r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) ~= -1 then
                                 r.TrackFX_SetParamNormalized(LT_Track, 0, v-1, I.Val)
                                 r.SetProjExtState(0, 'FX Devices', 'Macro'.. i.. 'Value of Track'..TrkID , I.Val)
                             end
@@ -6146,10 +6105,10 @@ function loop()
 
 
              
-            MacroPos = r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0)  
+            MacroPos = r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0)  
             local ReSpectrumPos = r.TrackFX_AddByName(LT_Track, 'FXD ReSpectrum', 0, 0)  
             if MacroPos ~= -1 and MacroPos~= 0 then  -- if macro exists on track, and Macro is not the 1st fx
-                if FX.Win_Name[0] ~= 'JS: FXD Macros' then r.TrackFX_CopyToTrack(LT_Track, MacroPos ,LT_Track,0 ,true)  end -- move it to 1st slot
+                if FX.Win_Name[0] ~= 'JS: FXD macros' then r.TrackFX_CopyToTrack(LT_Track, MacroPos ,LT_Track,0 ,true)  end -- move it to 1st slot
             end
 
 
@@ -6214,7 +6173,7 @@ function loop()
                     --------------==  Space between FXs--------------------
                     function AddSpaceBtwnFXs(FX_Idx, SpaceIsBeforeRackMixer, AddLastSpace, LyrID, SpcIDinPost)
                         local SpcIsInPre, Hide, SpcInPost, MoveTarget
-                        if FX_Idx == 1 and r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) ~= -1 then FX_Idx=FX_Idx-1 else FX_Idx =FX_Idx end 
+                        if FX_Idx == 1 and r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) ~= -1 then FX_Idx=FX_Idx-1 else FX_Idx =FX_Idx end 
                         TblIdxForSpace = FX_Idx..tostring (SpaceIsBeforeRackMixer)
                         FXGUID_To_Check_If_InLayer=r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
                         if Trk[TrkID].PreFX[1] then
@@ -6358,7 +6317,11 @@ function loop()
                                         if val&4 ~= 0 then 
                                             reaper.SNM_SetIntConfigVar("fxfloat_focus", val|4) -- re-enable Auto-float
                                         end
+                                    elseif r.ImGui_Selectable(ctx, 'Add Band Split') then
+                                        r.gmem_attach('FXD_BandSplit')
+                                        r.TrackFX_AddByName(LT_Track, 'FXD Saike BandSplitter.jsfx', 0, -1000-FX_Idx) 
 
+                                        FX_Idx_OpenedPopup=nil
                                     end
 
 
@@ -6416,7 +6379,7 @@ function loop()
                             elseif SpcInPost then       local offset 
 
 
-                                if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = -1 else offset =0 end 
+                                if r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 then offset = -1 else offset =0 end 
 
                                 if not tablefind(Trk[TrkID].PostFX, FXGUID[DragFX_ID]) then -- if fx is not yet in post-fx chain
                                     InsertToPost_Src = DragFX_ID + offset+1
@@ -6775,7 +6738,7 @@ function loop()
                         if FX.InLyr[FXGUID_To_Check_If_InLayer] ==nil  and FindStringInTable(BlackListFXs, FX_Name)~=true and FX_Idx ~= RepeatTimeForWindows and string.find(FX_Name, 'RackMixer') ==nil then 
                             local Idx = FX_Idx 
                             if FX_Idx ==1 then local Nm = FX.Win_Name[0] 
-                                if Nm == 'JS: FXD Macros' or FindStringInTable(BlackListFXs, Nm ) then Idx = 0 end 
+                                if Nm == 'JS: FXD macros' or FindStringInTable(BlackListFXs, Nm ) then Idx = 0 end 
                             end
 
                             AddSpaceBtwnFXs(Idx) 
@@ -6957,7 +6920,7 @@ function loop()
                                                 end
                                             end
 
-                                            if --[[Add Macros JSFX if not found]]  r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 then 
+                                            if --[[Add Macros JSFX if not found]]  r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 and r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 then 
                                                 r.gmem_write (1   , PM.DIY_TrkID[TrkID] ) --gives jsfx a guid when it's being created, this will not change becuase it's in the @init.
                                                 AddMacroJSFX()
                                             end
@@ -9624,14 +9587,12 @@ function loop()
                                         
                                         if FX.Enable[FX_Idx] == false then 
                                             local drawlist=reaper.ImGui_GetForegroundDrawList(ctx)
-                    
                                             r.ImGui_DrawList_AddRectFilled (drawlist, ProQ_Xpos_L , ProQ_Ypos_T-20, ProQ_Xpos_L+ProQ3.Width,ProQ_Ypos_T+ProQ3.H, 0x00000077)
-                    
                     
                                         end
 
 
-                                        if FX.Win_Name[math.max(FX_Idx-1,0)]:find( 'JS: FXD ReSpectrum')   then 
+                                        if FX.Win_Name[math.max(FX_Idx-1,0)]:find( 'FXD ReSpectrum')   then 
                                             r.TrackFX_Show(LT_Track, FX_Idx-1, 2)
                                             if tablefind(Trk[TrkID].PreFX, FxGUID) then r.TrackFX_Delete( LT_Track, FX_Idx-1 ) end 
 
@@ -10750,38 +10711,8 @@ function loop()
 
 
                     elseif--[[FX Layer Window ]]string.find(FX_Name,'FXD %(Mix%)RackMixer') or string.find(FX_Name,'FXRack')   then   --!!!!  FX Layer Window 
-                         
-                        --[[ if FX[FxGUID].RackMixerNEW then 
-                            for i=0, 16, 2 do 
-                                r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, i, 1, 0) 
-                                end
-    
-                                for i=1, 16, 2 do 
-                                    r.TrackFX_SetPinMappings(LT_Track, FX_Idx, 0, i, 2, 0) 
-                                end
-    
-                                for i=1, 8,1 do 
-                                    local P_Num = 1+(5*(i-1))
-                                    local Fx_P = i*2-1
-                                    local P_Name = 'Chan '..i..' Vol'
-                                    StoreNewParam(FxGUID, P_Name ,P_Num, FX_Idx, IsDeletable, 'AddingFromExtState', Fx_P,FX_Idx) -- Vol
-                                    local P_Num = 1+(5*(i-1)+1)
-                                    local Fx_P_Pan = i*2
-                                    local P_Name = 'Chan '..i..' Pan' 
-                                    StoreNewParam(FxGUID, P_Name ,P_Num, FX_Idx, IsDeletable, 'AddingFromExtState', Fx_P_Pan,FX_Idx) -- Pan
-                                end
-
-                            FX[FxGUID].RackMixerNEW = false 
-                        end  ]]
-                        
-                        
-                        --[[ if FX_Idx==1 then
-                            AddSpaceBtwnFXs(0,true  )
-                        end ]]
 
                         if not FX[FxGUID].Collapse  then 
-
-
 
                                 FXGUID_RackMixer = r.TrackFX_GetFXGUID(LT_Track, FX_Idx)
                                 r.TrackFX_Show( LT_Track, FX_Idx, 2 )
@@ -11535,7 +11466,7 @@ function loop()
                         r.ImGui_SameLine(ctx,nil,0)
                         FX[FXGUID[FX_Idx]].DontShowTilNextFullLoop = true
 
-                    elseif FX_Name:find( 'JS: FXD ReSpectrum' ) then 
+                    elseif FX_Name:find( 'FXD ReSpectrum' ) then 
 
                         local _,FX_Name_After = r.TrackFX_GetFXName(LT_Track, FX_Idx+1 )
                         --if FX below is not Pro-Q 3
@@ -11647,6 +11578,123 @@ function loop()
                         pin = r.TrackFX_GetPinMappings(LT_Track, FX_Idx, 0,0)
                         
 
+                    elseif FX_Name:find('FXD Saike BandSplitter.+') then        local Width = 65        local  RClickOnBand
+                        if r.ImGui_BeginChild(ctx, 'FXD Saike BandSplitter'..FxGUID, Width, 240) then
+                            local title = 'BandSplit'
+                            local btnTitle = string.gsub('BandSplit',"(.)", "%1\n")
+                            local btn= r.ImGui_Button(ctx, btnTitle..'##Vertical', 25, 220 ) -- create window name button
+                            if btn and Mods == 0 then 
+                            elseif btn and Mods==Shift then 
+                                ToggleBypassFX()
+                            elseif btn and Mods ==Alt then 
+                                FX[FxGUID].DeleteFXLayer = true 
+                            end
+                            SL(nil,0)
+                            r.gmem_attach('FXD_BandSplit')
+                            local function  f_trafo(freq)
+                                return math.exp( (1-freq) * math.log(20/22050))
+                            end
+                            FX[FxGUID].Cross = FX[FxGUID].Cross or {}
+                            local Cuts = r.TrackFX_GetParamNormalized(LT_Track,FX_Idx, 0)
+
+                            for i=1, Cuts*4, 1 do ----------[Repeat for Bands]----------
+                                local TxtClr = getClr(r.ImGui_Col_Text())
+                                FX[FxGUID].Cross[i] =  FX[FxGUID].Cross[i] or {}
+                                local X = FX[FxGUID].Cross[i]
+                               -- r.gmem_attach('FXD_BandSplit')
+                                local WDL = r.ImGui_GetWindowDrawList(ctx)
+                                local WinL, WinT = r.ImGui_GetCursorScreenPos(ctx) local H, WinR = 220  , WinL+Width
+                                X.Val = r.gmem_read(i)
+
+                                --FX[FxGUID].Cross[i].Val = r.TrackFX_GetParamNormalized(LT_Track,FX_Idx, i)
+
+                                local Cross_Pos = SetMinMax( WinT+H - H*X.Val, WinT, WinT+H)
+                                r.ImGui_DrawList_AddLine(WDL, WinL, Cross_Pos , WinR, Cross_Pos, TxtClr )
+                                r.ImGui_DrawList_AddText(WDL, WinL, Cross_Pos, TxtClr , roundUp(r.gmem_read(10+i),1))
+
+
+                                if --[[Hovering over a band]] r.ImGui_IsMouseHoveringRect(ctx, WinL, Cross_Pos-3, WinR, Cross_Pos+3 ) then 
+                                    if IsLBtnClicked then 
+                                        table.insert(Sel_Cross, i)  
+                                        Sel_Cross.FxID = FxGUID
+                                    elseif IsRBtnClicked then RClickOnBand = i 
+                                    end
+                                end
+
+                                if r.ImGui_IsMouseHoveringRect(ctx, WinL, WinT, WinR, WinT+H ) and IsRBtnClicked then 
+                                    --r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 0, math.min(Cuts+0.25 ,1 )) msg('a')
+                                    msg('r click')
+                                end
+
+                                if Sel_Cross[1] and Sel_Cross.FxID == FxGUID  then 
+                                    
+                                    if IsLBtnHeld then
+
+
+                                        local PrmV = r.TrackFX_GetParamNormalized(LT_Track,FX_Idx, i)
+                                        DragDeltaX, DragDeltaY = r.ImGui_GetMouseDragDelta(ctx)
+                                        if DragDeltaY> 0 or DragDeltaY<0 then          local B = Sel_Cross.TweakingBand
+                                            if #Sel_Cross>1 then  
+                                                if DragDeltaY>0 then 
+                                                        B = math.min(Sel_Cross[1], Sel_Cross[2])        table.remove(Sel_Cross, tablefind(Sel_Cross, math.max(Sel_Cross[1], Sel_Cross[2])))   
+                                                else    B = math.max(Sel_Cross[1], Sel_Cross[2])        table.remove(Sel_Cross, tablefind(Sel_Cross, math.min(Sel_Cross[1], Sel_Cross[2])))   
+                                                end 
+                                            else B = Sel_Cross[1] 
+                                            end 
+                                            local LowestV=0.02
+                                            --r.gmem_write(100, B)
+                                            --r.gmem_write(101, -DragDeltaY*10)
+                                            if B==1 and B==i then  -- if B ==1
+                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, B, PrmV- DragDeltaY/250--[[Val of moving Freq]] )
+                                                local PrmV_New= r.TrackFX_GetParamNormalized(LT_Track,FX_Idx, i)
+                                                local NextF = r.gmem_read(111+B)
+                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, B+1, SetMinMax( (NextF - PrmV_New) /(1-PrmV_New) ,LowestV,1) )
+
+                                            elseif B <4 and B >1 and B==i then --if B == 2~4
+
+                                            end
+
+                                            --[[ if B <4 and B >0 and B==i then
+                                                local PrmV_New= r.TrackFX_GetParamNormalized(LT_Track,FX_Idx, i)
+                                                --local PrmV_NextB= r.TrackFX_GetParamNormalized(LT_Track,FX_Idx, i+1)
+                                                local ThisF = r.gmem_read(110+B)
+                                                
+
+
+
+                                                local NextF = r.gmem_read(111+B)
+                                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, B+1, SetMinMax( (NextF - PrmV_New) /(1-PrmV_New) ,LowestV,1) )
+                                            end ]]
+                                            --r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, MovingBand+2, r.gmem_read(112)--[[Val of moving Freq + 1]] )
+
+
+                                            --r.TrackFX_SetParamNormalized(LT_Track,FX_Idx, i, math.max(PrmV-DragDeltaY/250,0.02))
+                                            r.ImGui_ResetMouseDragDelta(ctx)
+                                            r.gmem_write(101,0)
+                                        end
+                                        if Sel_Cross[1] == i then 
+                                            r.ImGui_SetNextWindowPos(ctx,WinR, Cross_Pos-14)
+                                            r.ImGui_BeginTooltip(ctx)
+                                            r.ImGui_Text(ctx, roundUp(r.gmem_read(10+i),1)..' Hz')
+                                            r.ImGui_EndTooltip(ctx)
+                                            --r.ImGui_DrawList_AddText(Glob.FDL, WinL, Cross_Pos, getClr(r.ImGui_Col_Text()) , roundUp(r.gmem_read(10+i),1)..' Hz')
+                                        end
+
+                                    else Sel_Cross={}  r.gmem_write(100, 0)
+                                    end
+                                else 
+                                end
+                            end
+                            
+                            if RClickOnBand then 
+                                r.TrackFX_SetParamNormalized(LT_Track, FX_Idx, 0, math.max(Cuts-0.25 ,0 ))
+                            else  
+                            end
+
+
+
+                            r.ImGui_EndChild(ctx)
+                        end
                     end--  for if FX_Name ~='JS: FXD (Mix)RackMixer' 
                     r.ImGui_SameLine(ctx,nil,0)
             
@@ -11867,7 +11915,7 @@ function loop()
                         
                         Trk[TrkID].MakeSpcForPostFXchain = 0
 
-                        if r.TrackFX_AddByName(LT_Track, 'FXD Macros', 0, 0) == -1 then offset = 0 else offset =1 end 
+                        if r.TrackFX_AddByName(LT_Track, 'FXD macros', 0, 0) == -1 then offset = 0 else offset =1 end 
 
                         for FX_Idx, V in pairs(Trk[TrkID].PostFX) do 
                             
